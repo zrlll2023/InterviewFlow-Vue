@@ -23,7 +23,19 @@
 
         <div class="form-item">
           <label>② 目标岗位名称 <span class="required">*</span></label>
-          <el-input v-model="form.targetPosition" placeholder="如：Java后端开发" />
+          <el-select v-model="form.targetPosition" placeholder="请选择目标岗位" style="width: 100%">
+            <el-option label="Java后端开发" value="Java后端开发" />
+            <el-option label="前端开发" value="前端开发" />
+            <el-option label="全栈开发" value="全栈开发" />
+            <el-option label="Python开发" value="Python开发" />
+            <el-option label="Go开发" value="Go开发" />
+            <el-option label="C++开发" value="C++开发" />
+            <el-option label="算法工程师" value="算法工程师" />
+            <el-option label="测试开发" value="测试开发" />
+            <el-option label="运维工程师" value="运维工程师" />
+            <el-option label="大数据开发" value="大数据开发" />
+            <el-option label="其他" value="其他" />
+          </el-select>
         </div>
 
         <div class="form-item">

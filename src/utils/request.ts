@@ -7,16 +7,13 @@ const request = axios.create({
 })
 
 request.interceptors.request.use((config) => {
-  let aiConfig: Record<string, string> = {}
-  try {
-    const stored = localStorage.getItem('ai_config')
-    if (stored) aiConfig = JSON.parse(stored)
-  } catch {
-    aiConfig = {}
-  }
-  if (aiConfig.apiKey) config.headers['X-AI-Key'] = aiConfig.apiKey
-  if (aiConfig.baseUrl) config.headers['X-AI-Base-Url'] = aiConfig.baseUrl
-  if (aiConfig.model) config.headers['X-AI-Model'] = aiConfig.model
+  const apiKey = localStorage.getItem('ai_api_key')
+  const baseUrl = localStorage.getItem('ai_base_url')
+  const model = localStorage.getItem('ai_model')
+
+  if (apiKey) config.headers['X-AI-Key'] = apiKey
+  if (baseUrl) config.headers['X-AI-Base-Url'] = baseUrl
+  if (model) config.headers['X-AI-Model'] = model
 
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`

@@ -21,7 +21,6 @@
         v-for="report in filteredReports"
         :key="report.sessionId"
         class="report-card"
-        @click="viewDetail(report.sessionId)"
       >
         <div class="card-header">
           <div class="title">
@@ -31,9 +30,13 @@
               {{ difficultyLabel(report.difficulty) }}
             </el-tag>
           </div>
+          <el-button type="danger" text size="small" @click.stop="confirmDelete(report.sessionId)">
+            <el-icon><Delete /></el-icon>
+            删除
+          </el-button>
         </div>
 
-        <div class="score-bar">
+        <div class="score-bar" @click="viewDetail(report.sessionId)">
           <div class="score-label">综合得分: {{ report.scoreTotal }}分</div>
           <el-progress
             :percentage="report.scoreTotal"
@@ -43,7 +46,7 @@
           />
         </div>
 
-        <div class="card-footer">
+        <div class="card-footer" @click="viewDetail(report.sessionId)">
           <span class="meta">
             面试日期: {{ formatDate(report.createdAt) }} · 答题数量: {{ report.questionCount }} 题
           </span>
@@ -54,19 +57,34 @@
         </div>
       </div>
     </div>
+
+    <el-dialog
+      v-model="showDeleteConfirm"
+      title="确认删除"
+      width="400px"
+    >
+      <p>确定要删除这条面试记录吗？删除后无法恢复。</p>
+      <template #footer>
+        <el-button @click="showDeleteConfirm = false">取消</el-button>
+        <el-button type="danger" @click="executeDelete">确认删除</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, Aim, ArrowRight } from '@element-plus/icons-vue'
+import { Search, Aim, ArrowRight, Delete } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 import type { ReportSummaryVO } from '@/types/api'
 
 const router = useRouter()
 const reports = ref<ReportSummaryVO[]>([])
 const searchQuery = ref('')
+const showDeleteConfirm = ref(false)
+const deleteSessionId = ref<number | null>(null)
 
 const filteredReports = computed(() => {
   if (!searchQuery.value) return reports.value
@@ -108,6 +126,23 @@ function viewDetail(sessionId: number) {
   router.push(`/reports/${sessionId}`)
 }
 
+function confirmDelete(sessionId: number) {
+  deleteSessionId.value = sessionId
+  showDeleteConfirm.value = true
+}
+
+async function executeDelete() {
+  if (!deleteSessionId.value) return
+  try {
+    await request.delete(`/interviews/report/${deleteSessionId.value}`)
+    ElMessage.success('删除成功')
+    showDeleteConfirm.value = false
+    await loadReports()
+  } catch {
+    // handled by interceptor
+  }
+}
+
 async function loadReports() {
   const res = await request.get('/interviews/reports')
   reports.value = res || []
@@ -135,12 +170,18 @@ onMounted(loadReports)
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
   transition: box-shadow 0.2s;
 }
 
 .report-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .card-header .title {
@@ -150,11 +191,11 @@ onMounted(loadReports)
   font-size: 16px;
   font-weight: 600;
   color: #1E293B;
-  margin-bottom: 16px;
 }
 
 .score-bar {
   margin-bottom: 16px;
+  cursor: pointer;
 }
 
 .score-label {
@@ -167,6 +208,7 @@ onMounted(loadReports)
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: pointer;
 }
 
 .meta {
